@@ -21,34 +21,45 @@ class MyActiveRecord{
 	}
 
 	function select($columns){
-		//$this->query = "SELECT ".$columns;
-		$this->query = "SELECT $columns";
-		//$this->prepare_query["columns"] = $columns;
-		return $this;
+		if (gettype($columns)=="string" AND strlen($columns) < 100 AND preg_match("/^[A-Za-zА-Яа-я0-9ё\s,`.:_-]+$/u",$columns)) {//Проверка переменной 
+			//if (preg_match("#^[a-zA-Zа-яА-Я0-9\-_ `,]+$#",$str)) {
+				$this->query = "SELECT ".$columns;
+				return $this;
+		} 
+		else {
+			break;
+		}
 	}
 
 	function from($table){
-		//$this->query = $this->query." FROM ".$table;
-		$this->query = $this->query." FROM $table";
-		//$this->prepare_query["table"] = $table;
-		return $this;
+		if (gettype($table)=="string" AND strlen($table) < 100 AND preg_match("/^[A-Za-zА-Яа-я0-9ё\s,`.:_-]+$/u",$table)) {
+			$this->query = $this->query." FROM $table";
+			return $this;
+		}
+		else {
+			break;
+		}
 	}
 
 	function where($a, $b, $c){
-		//$this->query = $this->query." WHERE ".$a." ".$b." ".$c;
-		$this->query = $this->query." WHERE $a $b :c";
-		//$this->prepare_query = "a"=>"$a","b"=>"$b","c"=>"$c";
-		//$this->prepare_query['a'] = $a;
-		//$this->prepare_query["b"] = $b;
-		$this->prepare_query['c'] = $c;
-		return $this;
+		if (gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[=><!]+$/",$b) AND gettype($c)=="integer") {
+			$this->query = $this->query." WHERE $a $b :c";
+			$this->prepare_query['c'] = $c;
+			return $this;
+		} else {
+			break;
+		}
 	}
 
 	function limit($num){
-		//$this->query = $this->query." limit ".$num;
-		$this->query = $this->query." LIMIT $num";
-		//$this->prepare_query['num'] = $num;
-		return $this->prepare_query;
+		if (gettype($num) == "integer")
+		{
+			$this->query = $this->query." LIMIT $num";
+			return $this;
+		}
+		else { 
+			break;
+		}
 	}
 
 	function insert(){
@@ -71,20 +82,19 @@ class MyActiveRecord{
 	}
 
 	function __destruct(){
-      $this->pdo = null;
+    	$this->pdo = null;
     }
 }
-
 
 
 $config = array("dbtype"=>"mysql","login"=>"root","dbpass"=>"","dbhost"=>"192.168.1.2:3306","dbname"=>"library");
 
 $db = new MyActiveRecord($config);
-$columns = "id, name";
+$columns = "`id`, `name`";
 $table = "stas";
 $a = "id";
 
-print_r($db->select($columns)->from($table)->where($a,'>', 2)->limit(2));
+print_r($db->select($columns)->from($table)->where($a,'>=', 1)->limit(3));
 
 
 echo "<pre>";
@@ -93,7 +103,4 @@ echo "<pre/>";
 
 echo $db->query;
 
-/*$db->select($columns)->from($table)->where($a,'>',1)->limit(1);
-$db->save();*/
-
-?>''
+?>
