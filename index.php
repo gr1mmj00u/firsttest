@@ -47,11 +47,11 @@ try {
 	/*echo $db->update($table, $low_priority, $ignore)->set($values_update)->where($a, '=', 'Stasik');//Пример запроса UPDATE
 	$db->execute()->fetchAll();*/
 //----------------------------------------------------------------------------------------------------
-	echo $db->select($columns)->from($table)->join('contacts', 'stas.id', 'contacts.id');//->orOn('stas.id','=', 'contacts.id');//Пример запроса join
-	echo $db->select($columns)->from($table)->leftJoin('contacts', 'stas.id', 'contacts.id');
-	echo $db->select($columns)->from($table)->rightJoin('contacts', 'stas.id', 'contacts.id'); 
-	echo $db->select($columns)->from($table)->fullOuterJoin('contacts', 'stas.id', 'contacts.id');//В MySql не работает
-	echo $db->select($columns)->from($table)->crossJoin('contacts', 'stas.id', 'contacts.id');
+	$db->select($columns)->from($table)->join('contacts', 'stas.id', 'contacts.id');//->orOn('stas.id','=', 'contacts.id');//Пример запроса join
+	$db->select($columns)->from($table)->leftJoin('contacts', 'stas.id', 'contacts.id');
+	$db->select($columns)->from($table)->rightJoin('contacts', 'stas.id', 'contacts.id'); 
+	$db->select($columns)->from($table)->fullOuterJoin('contacts', 'stas.id', 'contacts.id');//В MySql не работает
+	$db->select($columns)->from($table)->crossJoin('contacts', 'stas.id', 'contacts.id');
 	print_r($db->execute()->fetchAll());
 
 //----------------------------------------------------------------------------------------------------

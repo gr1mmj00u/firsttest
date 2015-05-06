@@ -160,7 +160,7 @@ class MyActiveRecord{
 		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
 			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
 			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
-				$this->query .= " LEFT JOIN $a  ON $b = $c";
+				$this->query .= " LEFT JOIN $rightTable  ON $leftColumnName = $rightColumnName";
 				return $this;
 		} 
 		else {
@@ -172,7 +172,7 @@ class MyActiveRecord{
 		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
 			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
 			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
-				$this->query .= " RIGHT JOIN $a  ON $b = $c";
+				$this->query .= " RIGHT JOIN $rightTable  ON $leftColumnName = $rightColumnName";
 				return $this;
 		} 
 		else {
@@ -184,7 +184,7 @@ class MyActiveRecord{
 		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
 			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
 			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
-				$this->query .= " FULL OUTER JOIN $a  ON $b = $c";
+				$this->query .= " FULL OUTER JOIN $rightTable  ON $leftColumnName = $rightColumnName";
 				return $this;
 		} 
 		else {
@@ -194,7 +194,7 @@ class MyActiveRecord{
 
 	public function crossJoin($rightTable){
 		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)){
-				$this->query .= " CROSS JOIN $a";
+				$this->query .= " CROSS JOIN $rightTable";
 				return $this;
 		} 
 		else {
