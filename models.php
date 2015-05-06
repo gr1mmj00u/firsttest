@@ -67,7 +67,7 @@ class MyActiveRecord{
 			else {
 				throw new Exception("2ая переменная LIMIT не корректна", 1);
 			}
-			return $this->query;
+			return $this;
 		}
 		else {
 			throw new Exception("1ая переменная LIMIT не корректна", 1);
@@ -144,11 +144,11 @@ class MyActiveRecord{
 		}
 	}
 
-	public function join($a, $b, $c){
-		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)) AND 
-			(gettype($b)=="string" AND strlen($b) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$b)) AND 
-			(gettype($c)=="string" AND strlen($c) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$c))) {
-				$this->query .= " INNER JOIN $a  ON $b = $c";
+	public function join($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
+		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
+			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
+			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+				$this->query .= " INNER JOIN $rightTable  ON $leftColumnName = $rightColumnName";
 				return $this;
 		} 
 		else {
@@ -156,10 +156,10 @@ class MyActiveRecord{
 		}
 	}
 
-	public function leftJoin($a, $b, $c){
-		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)) AND 
-			(gettype($b)=="string" AND strlen($b) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$b)) AND 
-			(gettype($c)=="string" AND strlen($c) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$c))) {
+	public function leftJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
+		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
+			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
+			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
 				$this->query .= " LEFT JOIN $a  ON $b = $c";
 				return $this;
 		} 
@@ -168,10 +168,10 @@ class MyActiveRecord{
 		}
 	}
 
-	public function rightJoin($a, $b, $c){
-		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)) AND 
-			(gettype($b)=="string" AND strlen($b) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$b)) AND 
-			(gettype($c)=="string" AND strlen($c) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$c))) {
+	public function rightJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
+		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
+			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
+			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
 				$this->query .= " RIGHT JOIN $a  ON $b = $c";
 				return $this;
 		} 
@@ -180,10 +180,10 @@ class MyActiveRecord{
 		}
 	}
 
-	public function fullOuterJoin($a, $b, $c){
-		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)) AND 
-			(gettype($b)=="string" AND strlen($b) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$b)) AND 
-			(gettype($c)=="string" AND strlen($c) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$c))) {
+	public function fullOuterJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
+		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
+			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
+			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
 				$this->query .= " FULL OUTER JOIN $a  ON $b = $c";
 				return $this;
 		} 
@@ -192,7 +192,7 @@ class MyActiveRecord{
 		}
 	}
 
-	public function crossJoin($a){
+	public function crossJoin($rightTable){
 		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)){
 				$this->query .= " CROSS JOIN $a";
 				return $this;
