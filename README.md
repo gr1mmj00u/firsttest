@@ -18,22 +18,52 @@
 	<li>PDO_4D ( 4D )</li>
 </ul>
 <h2>Подключение</h2>
-<p>Способы подключения к разным СУБД могут незначительно отличаться. Ниже приведены примеры подключения к наиболее популярным из них. Можно заметить, что первые три имеют идентичный синтаксис, в отличие от SQLite.</p>
-<div class="highlight highlight-php">
+<p>Подключение происходит после инициализации обьекта конструктора. Способы подключения к разным СУБД могут незначительно отличаться, поэтому при создании обьекта на вход подаются разные массивы. Для подключения MS SQL Server, Sybase, MySQL используется:</p>
 <pre>
-	try {  
-	  # MS SQL Server и Sybase через PDO_DBLIB  
-	  $DBH = new PDO("mssql:host=$host;dbname=$dbname", $user, $pass);  
-	  $DBH = new PDO("sybase:host=$host;dbname=$dbname", $user, $pass);  
-	  
-	  # MySQL через PDO_MYSQL  
-	  $DBH = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);  
-	  
-	  # SQLite  
-	  $DBH = new PDO("sqlite:my/database/path/database.db");  
-}  
-catch(PDOException $e) {  
-    echo $e->getMessage();  
-}
+	$config = array(
+	"dbtype"=>"mysql",
+	"login"=>"root",
+	"dbpass"=>"",
+	"dbhost"=>"192.168.1.2:3306",
+	"dbname"=>"library",
+	);
 </pre>
-</div>
+<p>А для SQLite</p>
+<pre>
+	$config = array(
+	"dbtype"=>"sqlite",
+	"path"=>"/domain/bd.sqlite",
+	);
+</pre>
+<p>Пример создания экземпляра конструктора:</p>
+<pre>
+	$db = new MyQueryBuilder($config);
+</pre>
+
+<h2>function select()</h2>
+<p>При использовании метода select(), на вход подаётся массив полей таблицы которые мы хотим увидеть или строка.</p>
+<pre>
+	$columns = array('surname','name');
+	$db->select($columns);
+	SELECT surname, name
+
+	$columns = '*';
+	$db->select($columns);
+	SELECT *
+</pre>
+<h2>function from()</h2>
+<p>При использовании метода from(), на вход подаётся строка с названием таблицы.</p>
+<pre>
+	$columns = array('surname','name');
+	$table = 'client';
+
+	$db->select($columns)->from($table)
+	SELECT surname, name FROM client
+</pre>
+<h2>function where()</h2>
+<p>При использовании метода where(), на вход подаётся три параметра. Первый параметр - строка, второй параметр - условие состоящие только из (=><!), третий параметр - строка или число  </p>
+<pre>
+	$a = 'id'
+	$db->select($columns)->from($table)->where($a, '=', 10)
+	SELECT surname, name FROM client WHERE id = 10
+</pre>
