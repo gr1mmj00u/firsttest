@@ -1,17 +1,57 @@
 ﻿<?php
 
-class MyActiveRecord{
+class MyQueryBuilder{
 
 	private $config = array();
 	private $query = ""; // Строка запроса
 	private $pdo; //Обьект подключения PDO
 	private $prepare_query; //Массив для подготовки параметров запроса
 	private $result; //обьект для подготовки запроса
-	private $join_count;
+	private $checkQuery = array();
+
+
+	const EXCEPTION_1 = 'Column Name (s) is not true';//Название столбца(ов) не верно
+	const EXCEPTION_2 = 'An array of speakers is not correct';//Массив с колонками не корректен
+	const EXCEPTION_3 = 'The table name is not true';//Название таблицы не верно
+	const EXCEPTION_4 = 'Conditions are not entered correctly';//Условие введено не верно
+	const EXCEPTION_5 = 'Second variable LIMIT is not correct';//2ая переменная LIMIT не корректна
+	const EXCEPTION_6 = 'First variable LIMIT is not correct';//1ая переменная LIMIT не корректна
+	const EXCEPTION_7 = 'The input array of values is incorrect';//Входной массив значений некорректен
+	const EXCEPTION_8 = 'Input array values UPDATE incorrect';//Входной массив значений UPDATE некорректен
+	const EXCEPTION_9 = 'The parameter in the function join() is invalid';//Параметр в функции join() некорректен
+	const EXCEPTION_10 = 'The parameter in the function leftJoin() is invalid';//Параметр в функции leftJoin() некорректен
+	const EXCEPTION_11 = 'The parameter in the function rightJoin() is invalid';//Параметр в функции rightJoin() некорректен
+	const EXCEPTION_12 = 'The parameter in the function fullOuterJoin() is invalid';//Параметр в функции fullOuterJoin() некорректен
+	const EXCEPTION_13 = 'The parameter in the function crossJoin() is invalid';//Параметр в функции crossJoin() некорректен
+	const EXCEPTION_14 = 'The request not formed correctly';//Запрос сформирован некорректно
+	const EXCEPTION_15 = 'Failed to connect.';//Не удалось подключиться
+	const EXCEPTION_16 = 'The request did not return';//Запрос ничего не вернул
+	const EXCEPTION_17 = 'an error in the configuration,the connection is not established';//Ошибка в конфиге, соединение не создано
 
 	function __construct($config){/*Соединение с БД*/
-		$this->config = $config;
-		$this->pdo = new PDO("$config[dbtype]:host=$config[dbname];dbname=$config[dbname]", $config['login'], $config['dbpass']);
+		if ($config['dbtype']=='mysql' OR $config['dbtype']=='sybase' OR $config['dbtype']=='mssql'){
+			$this->pdo = new PDO("$config[dbtype]:host=$config[dbname];dbname=$config[dbname]", $config['login'], $config['dbpass']);
+			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);// СМ документацию PDO
+		}	
+		elseif ($config['dbtype']=='sqlite') {
+			$this->pdo = new PDO("sqlite:$config[path]");
+			$this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);// СМ документацию PDO
+		}
+		else {
+			throw new Exception(self::EXCEPTION_17);
+		}	
+	}
+
+	public function beginTransaction(){//Начало транзакции
+		$this->pdo->beginTransaction();
+	}
+
+	public function rollBack(){//Откат транзакции
+		$this->pdo->rollBack();
+	}
+
+	public function commit(){//Фиксирует транзакцию
+		$this->pdo->commit();
 	}
 
 	public function select($columns){
@@ -22,10 +62,11 @@ class MyActiveRecord{
 					$this->query .= " $value,";
 				}
 				else {
-					throw new Exception("Название колонок не верно", 1);
+					throw new Exception(self::EXCEPTION_1);
 				}
 			}
 			$this->query = trim($this->query, ',');
+			$this->checkQuery[] = 1; 
 			return $this;
 		} 
 		elseif (gettype($columns)=="string" AND strlen($columns) < 100 AND preg_match("/^[A-Za-z0-9\s,*`.:_-]+$/",$columns)) {
@@ -33,17 +74,18 @@ class MyActiveRecord{
 					return $this;
 		}
 		else {
-			throw new Exception("Массив с колонками не корректен", 1);	
+			throw new Exception(self::EXCEPTION_2);	
 		}
 	}
 
 	public function from($table){
 		if (gettype($table)=="string" AND strlen($table) < 100 AND preg_match("/^[A-Za-z0-9,`.:_-]+$/",$table)) {//Проверка переменной
 			$this->query .= " FROM $table";
+			$this->checkQuery[] = 2;
 			return $this;
 		}
 		else {
-			throw new Exception("Название таблиц не верно", 1);
+			throw new Exception(self::EXCEPTION_3);
 		}
 	}
 
@@ -51,9 +93,10 @@ class MyActiveRecord{
 		if (gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[=><!]+$/",$b) AND (gettype($c)=="integer" OR gettype($c)=="string")) {//Проверка переменных
 			$this->query = $this->query." WHERE $a $b :c";
 			$this->prepare_query['c'] = $c;
+			$this->checkQuery[] = 3;
 			return $this;
 		} else {
-			throw new Exception("Условие введено не верно", 1);
+			throw new Exception(self::EXCEPTION_4);
 		}
 	}
 
@@ -65,22 +108,24 @@ class MyActiveRecord{
 				$this->query .=",$b"; 
 			}
 			else {
-				throw new Exception("2ая переменная LIMIT не корректна", 1);
+				throw new Exception(self::EXCEPTION_5);
 			}
+			$this->checkQuery[] = 4;
 			return $this;
 		}
 		else {
-			throw new Exception("1ая переменная LIMIT не корректна", 1);
+			throw new Exception(self::EXCEPTION_6);
 		}
 	}
 
 	public function insert($table){
 		if (gettype($table)=="string" AND strlen($table) < 100 AND preg_match("/^[A-Za-z0-9,`.:_-]+$/",$table)) {
-			$this->query = "INSERT INTO '$table'";
+			$this->query = "INSERT INTO $table";
+			$this->checkQuery[] = 1;
 			return $this;
 		}
 		else {
-			throw new Exception("Название таблицы не верно", 1);
+			throw new Exception(self::EXCEPTION_3);
 		}
 	}
 
@@ -95,15 +140,16 @@ class MyActiveRecord{
 					$this->prepare_query[$key] = $value;
 				}
 				else {
-					throw new Exception("Название столбца(ов) не верно", 1);
+					throw new Exception(self::EXCEPTION_1);
 				}
 			}
 			$mas_column = trim($mas_column, ',').')';
 			$mas_value = trim($mas_value, ',').')';
 			$this->query .= " $mas_column $mas_value";//Итоговое склеивание запроса
+			$this->checkQuery[] = 2;
 			return $this; 
 		} else {
-			throw new Exception("Входной массив значений некорректен", 1);
+			throw new Exception(self::EXCEPTION_7);
 		}
 	}
 
@@ -117,10 +163,11 @@ class MyActiveRecord{
 		}
 		if (gettype($table)=="string" AND strlen($table) < 100 AND preg_match("/^[A-Za-z0-9,`.:_-]+$/",$table)) {//Проверка переменной
 			$this->query .= "$table ";
+			$this->checkQuery[] = 1;
 			return $this;
 		}
 		else {
-			throw new Exception("Название таблиц не верно", 1);
+			throw new Exception(self::EXCEPTION_3);
 		}
 	}
 
@@ -133,77 +180,108 @@ class MyActiveRecord{
 					$this->prepare_query[$key] = $value;
 				}
 				else {
-					throw new Exception("Название колонки неверно", 1);
+					throw new Exception(self::EXCEPTION_1);
 				}
 			}
 			$this->query = trim($this->query, ',');
+			$this->checkQuery[] = 2;
 			return $this;
 		}
 		else {
-			throw new Exception("Входной массив значений UPDATE некорректен", 1);
+			throw new Exception(self::EXCEPTION_8);
 		}
 	}
 
 	public function join($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
-		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
-			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
-			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+		if ($this->checkVariable($rightTable, $leftColumnName, $rightColumnName) == true) {
 				$this->query .= " INNER JOIN $rightTable  ON $leftColumnName = $rightColumnName";
+				$this->checkQuery[] = 3;
 				return $this;
 		} 
 		else {
-			throw new Exception("Параметр в функции join() некорректен", 1);
+			throw new Exception(self::EXCEPTION_9);
 		}
 	}
 
 	public function leftJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
-		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
-			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
-			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+		if ($this->checkVariable($rightTable, $leftColumnName, $rightColumnName) == true) {
 				$this->query .= " LEFT JOIN $rightTable  ON $leftColumnName = $rightColumnName";
+				$this->checkQuery[] = 3;
 				return $this;
 		} 
 		else {
-			throw new Exception("Параметр в функции join() некорректен", 1);
+			throw new Exception(self::EXCEPTION_10);
 		}
 	}
 
 	public function rightJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
-		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
-			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
-			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+		if ($this->checkVariable($rightTable, $leftColumnName, $rightColumnName) == true) {
 				$this->query .= " RIGHT JOIN $rightTable  ON $leftColumnName = $rightColumnName";
+				$this->checkQuery[] = 3;
 				return $this;
 		} 
 		else {
-			throw new Exception("Параметр в функции join() некорректен", 1);
+			throw new Exception(self::EXCEPTION_11);
 		}
 	}
 
 	public function fullOuterJoin($rightTable, $leftColumnName, $rightColumnName){//Первый параметр - таблица которую присоединяем; 2-ой и 3-ий - параметры по которым сшиваем таблицы
-		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
-			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
-			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+		if ($this->checkVariable($rightTable, $leftColumnName, $rightColumnName) == true) {
 				$this->query .= " FULL OUTER JOIN $rightTable  ON $leftColumnName = $rightColumnName";
+				$this->checkQuery[] = 3;
 				return $this;
 		} 
 		else {
-			throw new Exception("Параметр в функции join() некорректен", 1);
+			throw new Exception(self::EXCEPTION_12);
+		}
+	}
+ 
+	public function crossJoin($rightTable){
+		if (gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)){
+				$this->query .= " CROSS JOIN $rightTable";
+				$this->checkQuery[] = 3;
+				return $this;
+		} 
+		else {
+			throw new Exception(self::EXCEPTION_13);
 		}
 	}
 
-	public function crossJoin($rightTable){
-		if ((gettype($a)=="string" AND strlen($a) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$a)){
-				$this->query .= " CROSS JOIN $rightTable";
-				return $this;
-		} 
+	private function checkVariable($rightTable, $leftColumnName, $rightColumnName){//Функция для проверки входных данных функций: join(), leftjoin() и тд. =)
+		if ((gettype($rightTable)=="string" AND strlen($rightTable) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightTable)) AND 
+			(gettype($leftColumnName)=="string" AND strlen($leftColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$leftColumnName)) AND 
+			(gettype($rightColumnName)=="string" AND strlen($rightColumnName) < 100 AND preg_match("/^[A-Za-z0-9\s,`.:_-]+$/",$rightColumnName))) {
+				return true;
+		}
 		else {
-			throw new Exception("Параметр в функции join() некорректен", 1);
+			return false;
+		}
+	}
+
+	private function checkQuery(){
+		$bool = false;
+		$lenght = count($this->checkQuery);
+		if ($lenght < 2) { return false; }
+
+		for ($i=1; $i < $lenght; $i++) { 
+			if ($this->checkQuery[$i] > $this->checkQuery[$i-1]){
+				$bool = true;
+			}
+			else {
+				$bool = false;
+				break;
+			}
+		}
+		if($bool == true) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 
 	public function raw($a){
-		if (gettype($a)=='string'){
+		if (gettype($a)=='string') {
 			$this->query .="$a";
 			return $this;
 		}
@@ -214,17 +292,28 @@ class MyActiveRecord{
 
 	public function delete(){
 		$this->query .= "DELETE ";
+		$this->checkQuery[] = 1;
 		return $this;
 	}
 
 	public function execute(){ //Выполняет запрос
-		$this->result = $this->pdo->prepare($this->query);
-		$this->result->execute($this->prepare_query);
-		return $this;
+		if ($this->checkQuery() == true){
+			$this->result = $this->pdo->prepare($this->query);
+			$this->result->execute($this->prepare_query);
+			return $this;
+		}
+		else {
+			throw new Exception(self::EXCEPTION_14);
+		}
 	}
 
 	public function fetchAll(){ // Возвращает массив
-		return $this->result->fetchAll(PDO::FETCH_ASSOC);
+		if ($this->result != null){
+			return $this->result->fetchAll(PDO::FETCH_ASSOC);
+		} 
+		else {
+			throw new Exception(self::EXCEPTION_16);
+		}
 	}
 
 	function __destruct(){

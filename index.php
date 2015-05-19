@@ -6,60 +6,68 @@
 	"login"=>"root",
 	"dbpass"=>"",
 	"dbhost"=>"192.168.1.2:3306",
-	"dbname"=>"library"
+	"dbname"=>"library",
 	);
 
-	$db = new MyActiveRecord($config);
-	$columns = array('stas.id','surname','mail','name');
-	$table = "stas";
-	$a = "name";
-	$low_priority = false;
-	$ignore = false;
+	/*$config = array(
+	"dbtype"=>"sqlite",
+	"path"=>"/domain/bd.sqlite",
+	);*/
 
-	$values_query = array(
-		"name"=>"djon",
-		"surname"=>"boriawdawdsov"
-		);
+
+	$columns = array('surname','name');
+	$table = "stas";
+	$a = "id";
+	$low_priority = true;
+	$ignore = true;
+
+
 
 	$values_update = array(
-		"name45234"=>"stasik",
+		"name"=>"stasik",
 		"surname"=>"pupok"
 		);
 	$values_query = array(
-		"name"=>"djon",
-		"surname"=>"boriawdawdsov"
+		"name"=>"nick",
+		"surname"=>"travolta"
 		);
 
-
-
 try {
-	/*$db->select($columns)->from($table)->where($a,'=', 'stasik')->limit(4,4);//Пример Запроса SELECT
-	echo "<pre>";
+	$db = new MyQueryBuilder($config);
+
+	$db->beginTransaction();
+
+	$db->select($columns)->from($table)->where($a,'=', 'stasik')->limit(1,6);//Пример Запроса SELECT
 	print_r($db->execute()->fetchAll()); //извлечение результата запроса	
-	echo "<pre/>";*/
 //----------------------------------------------------------------------------------------------------
-	/*print_r($db->insert($table)->values($values_query));// Пример Запроса INSERT
-	$db->execute();*/
+	$db->insert($table)->values($values_query);// Пример Запроса INSERT
+	$db->execute();
 //----------------------------------------------------------------------------------------------------
-	/*$db->delete()->from($table)->where($a, '>=', 15);//Пример запроса DELETE
-	$db->execute();*/
+	$db->delete()->from($table)->where($a, '>=', 90);//Пример запроса DELETE
+	$db->execute();
 //----------------------------------------------------------------------------------------------------
-	/*echo $db->update($table, $low_priority, $ignore)->set($values_update)->where($a, '=', 'Stasik');//Пример запроса UPDATE
-	$db->execute()->fetchAll();*/
+	$db->update($table, $low_priority, $ignore)->set($values_update)->where($a, '>=', 80);//Пример запроса UPDATE
+	$db->execute();
 //----------------------------------------------------------------------------------------------------
-	$db->select($columns)->from($table)->join('contacts', 'stas.id', 'contacts.id');//->orOn('stas.id','=', 'contacts.id');//Пример запроса join
+	$db->select($columns)->from($table)->join('contacts', 'stas.id', 'contacts.id');//Пример запроса join
 	$db->select($columns)->from($table)->leftJoin('contacts', 'stas.id', 'contacts.id');
 	$db->select($columns)->from($table)->rightJoin('contacts', 'stas.id', 'contacts.id'); 
 	$db->select($columns)->from($table)->fullOuterJoin('contacts', 'stas.id', 'contacts.id');//В MySql не работает
-	$db->select($columns)->from($table)->crossJoin('contacts', 'stas.id', 'contacts.id');
-	print_r($db->execute()->fetchAll());
-
+	$db->select($columns)->from($table)->crossJoin('contacts');
+	print_r($db->execute()->fetchAll());	
 //----------------------------------------------------------------------------------------------------
-	/*$db->raw("SELECT * FROM stas");Пример raw запроса 
+	$db->raw("SELECT * FROM stas");//Пример raw запроса 
 	print_r($db->execute()->fetchAll());
 
+	$db->commit();
 
-} catch (Exception $e) {
+	unset($db);
+} 
+catch (PDOException $e) {
+	echo $e->getMessage();
+	$db->rollBack();
+}
+catch (Exception $e) {
 	 	echo $e->getMessage();
 }
 
